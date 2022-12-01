@@ -41,3 +41,4 @@ cd $base/gl-infra-builder/mt7981
 ./scripts/gen_config.py target_mt7981_gl-mt2500 luci
 make -j$(expr $(nproc) + 1)  V=s
 copy_file ~/openwrt/bin/targets/*/*
+
