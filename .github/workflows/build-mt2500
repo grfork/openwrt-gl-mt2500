@@ -1,0 +1,62 @@
+name: build mt2500
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: '选择设备'
+        required: true
+        default: 'target_mt7981_gl-mt2500'
+        type: choice
+        options:
+        - target_mt7981_gl-mt2500
+      ui:
+        description: '是否包含官方UI (目前支持IPQ60XX系列和MT2500)'
+        required: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: update
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+        sudo apt install -y build-essential libncurses5-dev gawk git libssl-dev gettext zlib1g-dev swig unzip time rsync python3 python3-setuptools python3-yaml
+        git config --global user.email "mt2500@gl.com"
+        git config --global user.name "mt2500"
+    - name: make
+      run: |
+        ./build.sh ~ target_mt7981_gl-mt2500 false
+
+    - name: Organize files
+      id: organize
+      if: true && !failure() && !cancelled()
+      run: |
+        cd ~/firmware
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+    - name: Upload firmware directory
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled() && !failure()
+      with:
+        name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+
+    - name: Generate release tag
+      id: tag
+      if: true && !failure() && !cancelled()
+      run: |
+        echo "release_tag=${{inputs.device}}.${{ inputs.ui }}.$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "status=success" >> $GITHUB_OUTPUT
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled() && !failure()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        files: ${{ env.FIRMWARE }}/*
+
