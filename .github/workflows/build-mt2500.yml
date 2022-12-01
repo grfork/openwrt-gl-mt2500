@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: update
       run: |
-        sudo apt update
+        sudo apt-get update --allow-releaseinfo-change
         sudo apt upgrade -y
         sudo apt install python build-essential libncurses5-dev gawk git libssl-dev gettext zlib1g-dev swig unzip time rsync python3 python3-setuptools python3-yaml subversion -y
         git config --global user.email "mt2500@gl.com"
