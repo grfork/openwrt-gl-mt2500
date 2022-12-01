@@ -37,7 +37,7 @@ function copy_file(){
 }
 
 python3 setup.py -c configs/config-mt798x-7.6.6.1.yml
-cd $base/gl-infra-builder/mt7981
+ln -s $base/gl-infra-builder/mt7981 ~/openwrt && cd ~/openwrt
 ./scripts/gen_config.py target_mt7981_gl-mt2500 luci
 make -j$(expr $(nproc) + 1)  V=s
 copy_file ~/openwrt/bin/targets/*/*
